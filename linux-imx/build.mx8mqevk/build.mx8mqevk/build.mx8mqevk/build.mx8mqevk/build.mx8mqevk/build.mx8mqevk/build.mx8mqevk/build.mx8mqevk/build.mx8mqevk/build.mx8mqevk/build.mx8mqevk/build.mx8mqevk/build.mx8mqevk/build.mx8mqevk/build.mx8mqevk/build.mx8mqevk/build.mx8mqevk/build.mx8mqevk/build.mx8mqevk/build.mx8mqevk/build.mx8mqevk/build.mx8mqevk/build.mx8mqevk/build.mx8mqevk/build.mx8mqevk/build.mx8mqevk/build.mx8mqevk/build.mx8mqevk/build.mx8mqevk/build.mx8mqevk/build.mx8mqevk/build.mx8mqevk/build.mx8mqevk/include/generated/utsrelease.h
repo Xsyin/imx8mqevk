@@ -1,0 +1,1 @@
+#define UTS_RELEASE "4.19.35-05188-g8507afc3a397"

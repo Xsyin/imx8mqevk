@@ -1,0 +1,88 @@
+# Ignore miscellaneous files
+cscope.*
+*.swp
+*.patch
+*~
+.project
+.cproject
+*.o
+
+/toolchains
+
+# Ignore build directory
+build/
+build-optee/
+out/
+
+# Ignore build products from tools
+tools/**/*.o
+tools/fiptool/fiptool
+tools/fiptool/fiptool.exe
+tools/cert_create/src/*.o
+tools/cert_create/src/**/*.o
+tools/cert_create/cert_create
+tools/cert_create/cert_create.exe
+tools/doimage/doimage
+tools/stm32image/*.o
+tools/stm32image/stm32image
+tools/stm32image/stm32image.exe
+
+# GNU GLOBAL files
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+*.ta
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
