@@ -768,6 +768,7 @@ static int mark_static_shm_as_reserved(void *fdt)
 	vaddr_t shm_end;
 
 	core_mmu_get_mem_by_type(MEM_AREA_NSEC_SHM, &shm_start, &shm_end);
+	DMSG("NSEC SHM start  0x%" PRIxPA ", size 0x%" PRIxPASZ,virt_to_phys((void *)shm_start), shm_end - shm_start);
 	if (shm_start != shm_end)
 		return add_res_mem_dt_node(fdt, "optee",
 					   virt_to_phys((void *)shm_start),
@@ -779,6 +780,7 @@ static int mark_static_shm_as_reserved(void *fdt)
 
 static int mark_optee_core_as_reserved(void *fdt)
 {
+	DMSG("TZ DRAM start  0x%" PRIxPA ", size 0x%" PRIxPASZ,CFG_TZDRAM_START, CFG_TZDRAM_SIZE);
 	return add_res_mem_dt_node(fdt, "optee_core",
 					  CFG_TZDRAM_START,
 					  CFG_TZDRAM_SIZE);
@@ -842,10 +844,12 @@ static void update_fdt(void)
 #else
 static void init_fdt(unsigned long phys_fdt __unused)
 {
+	DMSG("not config CFG_DT");
 }
 
 static void update_fdt(void)
 {
+	DMSG("not config CFG_DT");
 }
 
 static void reset_dt_references(void)

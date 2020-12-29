@@ -933,6 +933,8 @@ void teecore_init_pub_ram(void)
 
 	default_nsec_shm_paddr = virt_to_phys((void *)s);
 	default_nsec_shm_size = e - s;
+	DMSG("NSEC Shared memory address range: 0x%" PRIxPA ", size 0x%" PRIxPASZ,
+	     default_nsec_shm_paddr, default_nsec_shm_size);
 }
 
 uint32_t tee_mmu_user_get_cache_attr(struct user_ta_ctx *utc, void *va)

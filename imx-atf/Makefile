@@ -97,7 +97,7 @@ ifneq (${DEBUG}, 0)
 else
         BUILD_TYPE	:=	release
         # Use LOG_LEVEL_NOTICE by default for release builds
-        LOG_LEVEL	:=	20
+        LOG_LEVEL	:=	40
 endif
 
 # Enable backtrace by default in DEBUG AArch64 builds

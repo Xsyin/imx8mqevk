@@ -40,6 +40,15 @@
 			u-boot,off-on-delay-us = <20000>;
 			enable-active-high;
 		};
+
+		epdev_on: fixedregulator@100 {
+			compatible = "regulator-fixed";
+			regulator-min-microvolt = <3300000>;
+			regulator-max-microvolt = <3300000>;
+			regulator-name = "epdev_on";
+			gpio = <&gpio4 9 0>;
+			enable-active-high;
+		};
 	};
 
 	pwmleds {

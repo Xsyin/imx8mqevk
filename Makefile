@@ -49,7 +49,7 @@ endef
 ################################################################################
 .PHONY: all
 
-all: prepare imx-mkimage linux-imx optee-imx
+all: prepare linux-imx optee-imx imx-mkimage
 
 .PHONY: clean
 clean: uboot-imx-clean linux-imx-clean optee-imx-clean prepare-clean imx-mkimage-clean imx-atf-clean
@@ -142,7 +142,9 @@ linux-imx: linux-common
 	cp -f $(LINUX_PATH)/arch/arm64/boot/Image $(OUT_PATH)
 
 .PHONY: linux-rootfs
-linux-rootfs: linux-module linux-headers
+linux-rootfs: linux-common linux-module linux-headers 
+	cp -f $(LINUX_PATH)/arch/arm64/boot/Image $(ROOTFS_PATH)/boot/Image-$(KERNEL_VERSION)
+	ln -snf $(ROOTFS_PATH)/boot/Image-$(KERNEL_VERSION) $(ROOTFS_PATH)/boot/Image
 
 .PHONY: linux-module
 linux-module:

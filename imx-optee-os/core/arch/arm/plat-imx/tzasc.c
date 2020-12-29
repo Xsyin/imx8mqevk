@@ -337,6 +337,10 @@ static int board_imx_tzasc_configure(vaddr_t addr)
 		TZC_ATTR_REGION_SIZE(TZC_REGION_SIZE_4M) |
 		TZC_ATTR_REGION_EN_MASK | TZC_ATTR_SP_ALL);
 
+	tzc_configure_region(4, (0xfff00000 - DRAM0_BASE),
+		TZC_ATTR_REGION_SIZE(TZC_REGION_SIZE_1M) |
+		TZC_ATTR_REGION_EN_MASK | TZC_ATTR_SP_S_RW | TZC_ATTR_SP_NS_RO);
+
 #ifdef CFG_DRM_SECURE_DATA_PATH
 	/* Use TZASC protection only for B1 revision */
 	if (soc_is_imx8mq_b1_layer())

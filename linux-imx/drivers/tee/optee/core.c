@@ -473,6 +473,8 @@ optee_config_shm_memremap(optee_invoke_fn *invoke_fn, void **memremaped_shm,
 	 * If OP-TEE can work with unregistered SHM, we will use own pool
 	 * for private shm
 	 */
+	pr_info("sec_caps : %#x", sec_caps);
+	pr_info("paddr : %pa, vaddr: %pa, size %ld", paddr, va, size);
 	if (sec_caps & OPTEE_SMC_SEC_CAP_DYNAMIC_SHM) {
 		rc = optee_shm_pool_alloc_pages();
 		if (IS_ERR(rc))
@@ -502,6 +504,8 @@ optee_config_shm_memremap(optee_invoke_fn *invoke_fn, void **memremaped_shm,
 		goto err_free_dmabuf_mgr;
 
 	*memremaped_shm = va;
+
+	pr_info("shared memory dmabuf_mgr: %pa, size %ld, priv_mgr : %pa, memremaped_shm :%pa", dmabuf_mgr, size, priv_mgr, memremaped_shm);
 
 	return rc;
 

@@ -101,6 +101,6 @@
 
 #define COUNTER_FREQUENCY		8000000 /* 8MHz */
 
-#define DEBUG_CONSOLE			0
+#define DEBUG_CONSOLE			1
 #define IMX_WDOG_B_RESET
 #define PLAT_IMX8M			1

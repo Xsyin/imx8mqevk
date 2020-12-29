@@ -108,6 +108,8 @@ enum tzc_action {
 				 TZC_ATTR_SP_SHIFT)
 #define TZC_ATTR_SP_NS_RW	((TZC_SP_NS_W | TZC_SP_NS_R) << \
 				TZC_ATTR_SP_SHIFT)
+#define TZC_ATTR_SP_NS_RO	((TZC_SP_NS_R) << \
+				TZC_ATTR_SP_SHIFT)
 
 #define TZC_REGION_SIZE_32K	0xe
 #define TZC_REGION_SIZE_64K	0xf
