@@ -30,11 +30,11 @@ static int booti_start(cmd_tbl_t *cmdtp, int flag, int argc,
 	/* Setup Linux kernel Image entry point */
 	if (!argc) {
 		ld = load_addr;
-		debug("*  kernel: default image load address = 0x%08lx\n",
+		printf("* kernel: default image load address = 0x%08lx\n",
 				load_addr);
 	} else {
 		ld = simple_strtoul(argv[0], NULL, 16);
-		debug("*  kernel: cmdline image address = 0x%08lx\n", ld);
+		printf("* kernel: cmdline image address = 0x%08lx\n", ld);
 	}
 
 	ret = booti_setup(ld, &relocated_addr, &image_size, false);
@@ -53,12 +53,13 @@ static int booti_start(cmd_tbl_t *cmdtp, int flag, int argc,
 
 	/* Handle BOOTM_STATE_LOADOS */
 	if (relocated_addr != ld) {
-		debug("Moving Image from 0x%lx to 0x%lx\n", ld, relocated_addr);
+		printf("Moving Image from 0x%lx to 0x%lx\n", ld, relocated_addr);
 		memmove((void *)relocated_addr, (void *)ld, image_size);
 	}
 
 	images->ep = relocated_addr;
 	lmb_reserve(&images->lmb, images->ep, le32_to_cpu(image_size));
+	printf("booti_start.......\n");
 
 	/*
 	 * Handle the BOOTM_STATE_FINDOTHER state ourselves as we do not

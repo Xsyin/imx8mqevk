@@ -901,6 +901,50 @@ static void discover_nsec_memory(void)
 	core_mmu_set_discovered_nsec_ddr(mem, nelems);
 }
 
+// static void map_container(uint64_t container_virt)
+// {
+// 	vaddr_t s;
+// 	vaddr_t e;
+// 	uint64_t *pud;
+// 	uint64_t *pmd;
+// 	uint64_t next;
+// 	uint64_t nextpmd;
+// 	uint64_t addr = container_virt;
+// 	uint64_t phys = TEE_CONTAINER_BASE;
+// 	uint64_t end = container_virt + 0x2000000;
+
+// 	uint32_t *start_value;
+// 	uint32_t *end_value;
+
+// 	core_mmu_get_mem_by_type(MEM_AREA_TEE_CONTAINER, &s, &e);
+// 	memset((void *)s, 0, 2 * SMALL_PAGE_SIZE);
+// 	DMSG("container address range: 0x%" PRIxPA ", end: 0x%" PRIxPA, s, e);
+// 	pud = (uint64_t *)(s + pud_index(container_virt) * sizeof(uint64_t));
+// 	//    
+// 	do{
+// 		next = pud_addr_end(addr, end);
+// 		*pud = (phys + SMALL_PAGE_SIZE ) | PUD_TYPE_TABLE;
+// 		DMSG("pud: 0x%" PRIxPA ", pudp 0x%" PRIxPA, pud, *pud);
+// 		pmd = (uint64_t *)(s + SMALL_PAGE_SIZE + pmd_index(addr) * sizeof(uint64_t));
+	
+// 		do{
+// 			nextpmd = pmd_addr_end(addr, next);
+// 			*pmd = phys | SECT_PAGE_KERNEL_RO;
+// 			DMSG("pmd: 0x%" PRIxPA ", pmdp 0x%" PRIxPA, pmd, *pmd);
+// 			DMSG("pmd nextpmd: 0x%" PRIxPA ", physpmd: 0x%" PRIxPA, nextpmd, phys);
+// 			phys += nextpmd - addr;
+// 		}while (pmd++, addr = nextpmd, addr != next);
+// 		phys += next - addr;
+// 		DMSG("pud next: 0x%" PRIxPA ", phys: 0x%" PRIxPA, next, phys);
+// 	}while (pud++, addr = next, addr != end);
+	
+// 	start_value = (uint32_t *)0xf9600000;
+// 	end_value = (uint32_t *)0xf9601f30;
+// 	*start_value = 0x66666666;
+// 	DMSG("start value vaddr: 0x%" PRIxVA ", value: 0x%08x", start_value, *start_value); 
+// 	DMSG("end value vaddr: 0x%" PRIxVA ", value: 0x%08x", end_value, *end_value);
+// }
+
 static void init_primary_helper(unsigned long pageable_part,
 				unsigned long nsec_entry, unsigned long fdt)
 {

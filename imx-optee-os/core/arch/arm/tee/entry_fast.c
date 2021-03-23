@@ -11,12 +11,11 @@
 #include <kernel/tee_l2cc_mutex.h>
 #include <kernel/misc.h>
 #include <mm/core_mmu.h>
+#include <mm/core_memprot.h>
+#include <kernel/secure_container.h>
 
 static void tee_entry_get_shm_config(struct thread_smc_args *args)
 {
-	vaddr_t shm_start;
-	vaddr_t shm_end;
-	uint32_t *test_value;
 
 	args->a0 = OPTEE_SMC_RETURN_OK;
 	args->a1 = default_nsec_shm_paddr;
@@ -24,10 +23,6 @@ static void tee_entry_get_shm_config(struct thread_smc_args *args)
 	/* Should this be TEESMC cache attributes instead? */
 	args->a3 = core_mmu_is_shm_cached();
 	
-	core_mmu_get_mem_by_type(MEM_AREA_NSEC_SHM, &shm_start, &shm_end);
-	test_value = (uint32_t*)(shm_start+0x300000);
-	*test_value = 0x233333;
-	DMSG("test value vaddr: 0x%" PRIxVA ", value: 0x%08x", test_value, *test_value); 
 }
 
 static void tee_entry_fastcall_l2cc_mutex(struct thread_smc_args *args)
@@ -164,6 +159,9 @@ void tee_entry_fast(struct thread_smc_args *args)
 	/* OP-TEE specific SMC functions */
 	case OPTEE_SMC_GET_SHM_CONFIG:
 		tee_entry_get_shm_config(args);
+		break;
+	case OPTEE_SMC_UPDATE_CONTAINER_REGION:
+		tee_entry_update_container_region(args);
 		break;
 	case OPTEE_SMC_L2CC_MUTEX:
 		tee_entry_fastcall_l2cc_mutex(args);

@@ -71,7 +71,8 @@ int dram_init(void)
 		gd->ram_size = PHYS_SDRAM_SIZE - rom_pointer[1];
 	else
 		gd->ram_size = PHYS_SDRAM_SIZE;
-
+	printf("rom_pointer[0] 0x%llx, rom_pointer[1] 0x%llx, PHYS_SDRAM_SIZE 0x%llx, ram_size 0x%llx\n",
+			rom_pointer[0], rom_pointer[1], PHYS_SDRAM_SIZE, gd->ram_size);
 	return 0;
 }
 

@@ -73,3 +73,24 @@ ifneq (${DECODED_BUFFER_LEN},)
 $(eval $(call add_define,DECODED_BUFFER_LEN))
 endif
 endif
+
+## Flag to enable exception handling in EL3
+# EL3_EXCEPTION_HANDLING		:= 1
+
+# # Route External Aborts to EL3. Disabled by default; External Aborts are handled
+# # by lower ELs.
+HANDLE_EA_EL3_FIRST		:= 1
+
+# # Enable RAS support
+# RAS_EXTENSION			:= 1
+
+# ifeq (${EL3_EXCEPTION_HANDLING},1)
+# BL31_SOURCES		+=	plat/arm/common/aarch64/arm_ehf.c
+# endif
+
+# # RAS sources
+# ifeq (${RAS_EXTENSION},1)
+# BL31_SOURCES		+=	lib/extensions/ras/std_err_record.c		\
+# 				lib/extensions/ras/ras_common.c   \
+# 				plat/imx/imx8mq/imx8mq_ras.c
+# endif

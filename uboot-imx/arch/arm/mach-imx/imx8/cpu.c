@@ -35,6 +35,8 @@
 #include <spl.h>
 #include <asm/arch/lpcg.h>
 
+#define LOG_DEBUG
+
 DECLARE_GLOBAL_DATA_PTR;
 
 struct edma_ch_map {
@@ -1261,9 +1263,12 @@ static sc_faddr_t reserve_optee_shm(sc_faddr_t addr_start)
 	sc_faddr_t optee_start = rom_pointer[0];
 	sc_faddr_t optee_size = rom_pointer[1];
 
+	printf("optee 0x%llx 0x%llx, addr_start 0x%llx\n",
+			optee_start, optee_size, addr_start);
+			
 	if (optee_size && optee_start <= addr_start &&
 		addr_start < optee_start + optee_size) {
-		debug("optee 0x%llx 0x%llx, addr_start 0x%llx\n",
+		printf("optee 0x%llx 0x%llx, addr_start 0x%llx\n",
 			optee_start, optee_size, addr_start);
 		return optee_start + optee_size;
 	}

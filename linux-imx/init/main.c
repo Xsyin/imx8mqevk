@@ -92,6 +92,7 @@
 #include <linux/rodata_test.h>
 #include <linux/jump_label.h>
 #include <linux/mem_encrypt.h>
+#include <linux/secure_container.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -532,6 +533,9 @@ asmlinkage __visible void __init start_kernel(void)
 {
 	char *command_line;
 	char *after_dashes;
+	int rc;
+	
+	pr_info("*********start_kernel1.......");
 
 	set_task_stack_end_magic(&init_task);
 	smp_setup_processor_id();
@@ -566,7 +570,6 @@ asmlinkage __visible void __init start_kernel(void)
 
 	build_all_zonelists(NULL);
 	page_alloc_init();
-
 	pr_notice("Kernel command line: %s\n", boot_command_line);
 	parse_early_param();
 	after_dashes = parse_args("Booting kernel",
@@ -588,7 +591,9 @@ asmlinkage __visible void __init start_kernel(void)
 	sort_main_extable();
 	trap_init();
 	mm_init();
-
+	rc = init_secure_container_region();
+	
+	pr_info("*********rc: %#08Lx", rc);
 	ftrace_init();
 
 	/* trace_printk can be enabled here */

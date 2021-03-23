@@ -276,6 +276,40 @@ ENDPROC(preserve_boot_args)
 	populate_entries \tbl, \count, \istart, \iend, \flags, #SWAPPER_BLOCK_SIZE, \tmp
 	.endm
 
+	.macro map_container, tbl, rtbl, vstart, vend, flags, phys, pgds, istart, iend, tmp, count, sv
+	mov \sv, \rtbl
+	mov \count, #0
+	compute_indices \vstart, \vend, #PGDIR_SHIFT, \pgds, \istart, \iend, \count
+	populate_entries \tbl, \rtbl, \istart, \iend, #PMD_TYPE_TABLE, #PAGE_SIZE, \tmp
+	mov \tbl, \sv
+	mov \sv, \rtbl
+
+#if SWAPPER_PGTABLE_LEVELS > 3
+	compute_indices \vstart, \vend, #PUD_SHIFT, #PTRS_PER_PUD, \istart, \iend, \count
+	populate_entries \tbl, \rtbl, \istart, \iend, #PMD_TYPE_TABLE, #PAGE_SIZE, \tmp
+	mov \tbl, \sv
+	mov \sv, \rtbl
+#endif
+
+#if SWAPPER_PGTABLE_LEVELS > 2
+	compute_indices \vstart, \vend, #SWAPPER_TABLE_SHIFT, #PTRS_PER_PMD, \istart, \iend, \count
+	populate_entries \tbl, \rtbl, \istart, \iend, #PMD_TYPE_TABLE, #PAGE_SIZE, \tmp
+	mov \tbl, \sv
+#endif
+
+	compute_indices \vstart, \vend, #SWAPPER_BLOCK_SHIFT, #PTRS_PER_PTE, \istart, \iend, \count
+	bic \count, \phys, #SWAPPER_BLOCK_SIZE - 1
+	populate_entries \tbl, \count, \istart, \iend, \flags, #SWAPPER_BLOCK_SIZE, \tmp
+	.endm
+
+/* __map_container(u64 tbl, u64 vstart, u64 vend, u64 phys);
+*/
+ENTRY(__map_container)
+	mov	x5, PTRS_PER_PGD
+	mov	x7, SWAPPER_MM_MMUFLAGS
+	map_container x0, x4, x2, x3, x7, x4, x5, x10, x11, x12, x13, x14
+ENDPROC(__map_container)
+
 /*
  * Setup the initial page tables. We only setup the barest amount which is
  * required to get the kernel running. The following sections are required:

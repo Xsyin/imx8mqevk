@@ -140,7 +140,7 @@ LINUX_DEFCONFIG_FILES ?= defconfig
 .PHONY: linux-imx
 linux-imx: linux-common
 	cp -f $(LINUX_PATH)/arch/arm64/boot/Image $(OUT_PATH)
-
+	#scp $(LINUX_PATH)/arch/arm64/boot/Image imx8:/run/media/mmcblk0p1
 .PHONY: linux-rootfs
 linux-rootfs: linux-common linux-module linux-headers 
 	cp -f $(LINUX_PATH)/arch/arm64/boot/Image $(ROOTFS_PATH)/boot/Image-$(KERNEL_VERSION)
@@ -157,6 +157,10 @@ linux-headers:
 .PHONY: linux-deb
 linux-deb: linux-defconfig
 	$(MAKE) -j4 -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS) bindeb-pkg
+
+.PHONY: linux-image
+linux-image:
+	$(MAKE) -j4 -C $(LINUX_PATH) $(LINUX_COMMON_FLAGS)
 
 .PHONY: linux-common
 linux-common: linux-defconfig

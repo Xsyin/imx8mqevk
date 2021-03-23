@@ -78,8 +78,11 @@ void bl31_main(void)
 	/* Perform platform setup in BL31 */
 	bl31_platform_setup();
 
+	NOTICE("BL31: bl31_platform_setup\n");
+
 	/* Initialise helper libraries */
 	bl31_lib_init();
+	NOTICE("BL31: bl31_lib_init\n");
 
 #if EL3_EXCEPTION_HANDLING
 	INFO("BL31: Initialising Exception Handling Framework\n");

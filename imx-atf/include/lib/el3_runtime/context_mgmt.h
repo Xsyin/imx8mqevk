@@ -12,6 +12,7 @@
 #include <context.h>
 #include <context_mgmt.h>
 #include <stdint.h>
+#include <ep_info.h>
 
 /*******************************************************************************
  * Forward declarations

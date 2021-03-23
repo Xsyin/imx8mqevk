@@ -32,6 +32,7 @@
 #include <linux/io.h>
 #include <linux/mm.h>
 #include <linux/vmalloc.h>
+#include <linux/secure_container.h>
 
 #include <asm/barrier.h>
 #include <asm/cputype.h>
@@ -55,6 +56,7 @@ u64 idmap_ptrs_per_pgd = PTRS_PER_PGD;
 
 u64 kimage_voffset __ro_after_init;
 EXPORT_SYMBOL(kimage_voffset);
+u64 container_virt;
 
 /*
  * Empty_zero_page is a special page that is used for zero-initialized data
@@ -202,7 +204,8 @@ static void init_pmd(pud_t *pudp, unsigned long addr, unsigned long end,
 		if (((addr | next | phys) & ~SECTION_MASK) == 0 &&
 		    (flags & NO_BLOCK_MAPPINGS) == 0) {
 			pmd_set_huge(pmdp, phys, prot);
-
+			if((phys - 0xfc000000) / 0x200000 < 0x10)
+				// pr_info("========== pmdp %#016llx, phys %#016llx", pmdp, phys);
 			/*
 			 * After the PMD entry has been populated once, we
 			 * only allow updates to the permission attributes.
@@ -240,6 +243,7 @@ static void alloc_init_cont_pmd(pud_t *pudp, unsigned long addr,
 		pmd_phys = pgtable_alloc();
 		__pud_populate(pudp, pmd_phys, PUD_TYPE_TABLE);
 		pud = READ_ONCE(*pudp);
+		// pr_info("========== pudp %#016llx, pud %#016llx, pmd_phys %#016llx, phys %#016llx, addr %#016llx", pudp, pud, pmd_phys, phys, addr);
 	}
 	BUG_ON(pud_bad(pud));
 
@@ -286,6 +290,8 @@ static void alloc_init_pud(pgd_t *pgdp, unsigned long addr, unsigned long end,
 		pud_phys = pgtable_alloc();
 		__pgd_populate(pgdp, pud_phys, PUD_TYPE_TABLE);
 		pgd = READ_ONCE(*pgdp);
+		if(phys == 0xfc000000)
+			pr_info("========== pgdp %#016llx, pgd %#016llx, pud_phys %#016llx", pgdp, pgd, pud_phys);
 	}
 	BUG_ON(pgd_bad(pgd));
 
@@ -623,6 +629,72 @@ static void __init map_kernel(pgd_t *pgdp)
 	kasan_copy_shadow(pgdp);
 }
 
+static void __init map_container(pgd_t *pgdir)
+{
+	unsigned long con_virt_start, con_virt_end, addr, next;
+	int offset;
+	pgd_t pgd, *pgdp;
+	pud_t pud, *pudp;
+	pmd_t pmd, *pmdp;
+	phys_addr_t phys;
+	phys_addr_t con_phys = (phys_addr_t)0xfc000000;
+	const u64 con_virt_base = __fix_to_virt(FIX_CONTAINER_BEGIN);
+	BUILD_BUG_ON(con_virt_base % SZ_2M);
+
+	offset = con_phys % SWAPPER_BLOCK_SIZE;
+	con_virt_start = con_virt_base + offset;
+	container_virt = (u64)con_virt_start;
+	pr_info_once("*********pgdir %#016llx, con_virt_start: %#016llx, init_mm pgd: %#016llx", pgdir, con_virt_start,init_mm.pgd);
+
+	if (WARN_ON((con_phys ^ con_virt_start) & ~PAGE_MASK))
+		return;
+
+	con_virt_end = con_virt_start + SZ_32M;
+	
+	addr = con_virt_start;
+	phys = con_phys;
+	// create_mapping_noalloc(round_down(con_phys, SWAPPER_BLOCK_SIZE), con_virt_start, SZ_32M, PAGE_KERNEL_RO);
+	// __create_pgd_mapping(pgdir, phys, (unsigned long)addr, SZ_32M, __pgprot((PROT_NORMAL_NC | ~PTE_WRITE) | PTE_RDONLY), early_pgtable_alloc, 0);
+	__create_pgd_mapping(pgdir, phys, (unsigned long)addr, SZ_32M, __pgprot(PROT_NORMAL_NC), early_pgtable_alloc, 0);
+	pgdp = pgd_offset_raw(pgdir, con_virt_start);
+	pgd = READ_ONCE(*pgdp);
+	pr_info("*********pgd %#016llx, pgdp %#016llx", pgd, pgdp);
+
+	// do {
+		// next = pgd_addr_end(addr, con_virt_end);
+		// __pgd_populate(pgdp, phys, PUD_TYPE_TABLE);
+		// pgd = READ_ONCE(*pgdp);
+
+		// phys += next - addr;
+		// pr_info("*********pgd %#016llx, pgdp %#016llx, next: %#016llx, con_phys %#016llx", pgd, pgdp, next, phys);
+	// } while (pgdp++, addr = next, addr != con_virt_end);
+
+	// create_mapping_noalloc(round_down(con_phys, SWAPPER_BLOCK_SIZE), con_virt_base, SZ_32M, PAGE_KERNEL_RO);
+	// con_virt = con_virt_base + offset;
+	// pgd = READ_ONCE(*pgdp);
+	// pr_info("*********pgd %#016llx, pgdp %#016llx,  con_phys %#016llx, con_virt: %#016llx", pgd, pgdp, con_phys, con_virt);
+
+	memblock_reserve(con_phys, SZ_32M);
+
+	pudp = pud_set_fixmap_offset(pgdp, con_virt_start);;
+	pud = READ_ONCE(*pudp);
+	pr_info("*********pud %#016llx, pudp %#016llx", pud, pudp);
+	pmdp = pmd_set_fixmap_offset(pudp, con_virt_start);;
+	pr_info("*********pmdp %#016llx", pmdp);
+	next = con_virt_start;
+	// do {
+	// 	pmd = READ_ONCE(*pmdp);
+	// 	addr = 
+	// 	pr_info("*********pmd %#016llx, pmdp %#016llx, next: %#016llx, con_phys %#016llx", pmd, pmdp, next, con_phys);
+
+	// 	next = pmd_addr_end(con_virt_start, con_virt_end);
+	// 	con_phys += next - con_virt_start;
+	// } while (pmdp++, con_virt_start = next, con_virt_start != con_virt_end);
+	
+	
+	return;
+}
+
 /*
  * paging_init() sets up the page tables, initialises the zone memory
  * maps and sets up the zero page.
@@ -634,6 +706,8 @@ void __init paging_init(void)
 
 	map_kernel(pgdp);
 	map_mem(pgdp);
+	map_container(pgdp);
+	pr_info("*********map_container");
 
 	/*
 	 * We want to reuse the original swapper_pg_dir so we don't have to
@@ -643,13 +717,20 @@ void __init paging_init(void)
 	 *
 	 * To do this we need to go via a temporary pgd.
 	 */
+	pr_info("*********ttbr1------------");
 	cpu_replace_ttbr1(__va(pgd_phys));
+	pr_info("****************pgd_phys: %#016llx, va: %#016llx", pgd_phys, __va(pgd_phys));
+	pr_info("****************pgdp: %#016llx, value %#016llx", pgdp, *pgdp);
+	pr_info("****************swapper_pg_dir: %#016llx, va: %#016llx", __pa_symbol(swapper_pg_dir), swapper_pg_dir);
+	pr_info("****************PGD_SIZE: %#016llx, PUD_SIZE: %#016llx", PGD_SIZE, PUD_SIZE);
+	pr_info_once("*********ttbr1: %#016llx", read_sysreg(ttbr1_el1));
 	memcpy(swapper_pg_dir, pgdp, PGD_SIZE);
 	cpu_replace_ttbr1(lm_alias(swapper_pg_dir));
+	pr_info_once("*********ttbr1: %#016llx", read_sysreg(ttbr1_el1));
 
 	pgd_clear_fixmap();
 	memblock_free(pgd_phys, PAGE_SIZE);
-
+	pr_info("*********test value: %#08Lx", *(u64 *)(container_virt));
 	/*
 	 * We only reuse the PGD from the swapper_pg_dir, not the pud + pmd
 	 * allocated with it.
@@ -842,7 +923,10 @@ void __set_fixmap(enum fixed_addresses idx,
 	pte_t *ptep;
 
 	BUG_ON(idx <= FIX_HOLE || idx >= __end_of_fixed_addresses);
-
+	// pr_info_once("*******fix addr start %#016llx",  FIXADDR_START);
+	// pr_info_once("*******fixmap %d, container %#016llx", FIX_CONTAINER_BEGIN, CONTAINER_BEGIN);
+	// pr_info_once("*******fixmap %d, container %#016llx", FIX_CONTAINER_END, CONTAINER_END);
+	
 	ptep = fixmap_pte(addr);
 
 	if (pgprot_val(flags)) {
@@ -912,6 +996,7 @@ void *__init fixmap_remap_fdt(phys_addr_t dt_phys)
 	int size;
 
 	dt_virt = __fixmap_remap_fdt(dt_phys, &size, PAGE_KERNEL_RO);
+	pr_info("================PAGE_KERNEL_RO: 0x%x", PAGE_KERNEL_RO);
 	if (!dt_virt)
 		return NULL;
 
@@ -934,6 +1019,7 @@ int pud_set_huge(pud_t *pudp, phys_addr_t phys, pgprot_t prot)
 {
 	pgprot_t sect_prot = __pgprot(PUD_TYPE_SECT |
 					pgprot_val(mk_sect_prot(prot)));
+	pr_info_once("=======pud PUD_TYPE_SECT 0x%x, PUD_TYPE_TABLE 0x%x, sect_prot: 0x%x", PUD_TYPE_SECT, PUD_TYPE_TABLE, sect_prot);				
 	pud_t new_pud = pfn_pud(__phys_to_pfn(phys), sect_prot);
 
 	/* Only allow permission changes for now */
@@ -950,6 +1036,7 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
 {
 	pgprot_t sect_prot = __pgprot(PMD_TYPE_SECT |
 					pgprot_val(mk_sect_prot(prot)));
+	pr_info_once("=======PUD_TYPE_SECT 0x%x, pmd PMD_TYPE_SECT 0x%x, PMD_TYPE_TABLE 0x%x, sect_prot: 0x%x", PUD_TYPE_SECT,PMD_TYPE_SECT, PMD_TYPE_TABLE, sect_prot);			
 	pmd_t new_pmd = pfn_pmd(__phys_to_pfn(phys), sect_prot);
 
 	/* Only allow permission changes for now */
@@ -959,6 +1046,8 @@ int pmd_set_huge(pmd_t *pmdp, phys_addr_t phys, pgprot_t prot)
 
 	BUG_ON(phys & ~PMD_MASK);
 	set_pmd(pmdp, new_pmd);
+	// if((phys - 0xfc000000) / 0x200000 < 0x10)
+	// 		pr_info("========== pmdp %#016llx, pmd %#016llx, phys %#016llx", pmdp, new_pmd, phys);
 	return 1;
 }
 

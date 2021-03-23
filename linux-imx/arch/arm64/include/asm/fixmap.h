@@ -21,6 +21,7 @@
 #include <asm/boot.h>
 #include <asm/page.h>
 #include <asm/pgtable-prot.h>
+#include <asm/kernel-pgtable.h>
 
 /*
  * Here we define all the compile-time 'special' virtual
@@ -35,7 +36,10 @@
  */
 enum fixed_addresses {
 	FIX_HOLE,
-
+	FIX_CONTAINER_END,
+	FIX_CONTAINER_BEGIN = FIX_CONTAINER_END + SZ_32M / PAGE_SIZE - 1,
+#define CONTAINER_BEGIN	  (__fix_to_virt(FIX_CONTAINER_BEGIN))
+#define CONTAINER_END		(__fix_to_virt(FIX_CONTAINER_END))
 	/*
 	 * Reserve a virtual window for the FDT that is 2 MB larger than the
 	 * maximum supported size, and put it at the top of the fixmap region.
@@ -87,6 +91,8 @@ enum fixed_addresses {
 
 	__end_of_fixed_addresses
 };
+
+extern u64 container_virt;
 
 #define FIXADDR_SIZE	(__end_of_permanent_fixed_addresses << PAGE_SHIFT)
 #define FIXADDR_START	(FIXADDR_TOP - FIXADDR_SIZE)

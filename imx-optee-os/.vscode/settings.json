@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "core_memprot.h": "c",
+        "core_mmu_private.h": "c",
+        "tee_mmu.h": "c",
+        "core_mmu.h": "c",
+        "crypto.h": "c",
+        "secure_container.h": "c",
+        "imx.h": "c",
+        "arm32.h": "c",
+        "cache.h": "c"
+    }
+}

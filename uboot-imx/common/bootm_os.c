@@ -443,7 +443,8 @@ static int do_bootm_tee(int flag, int argc, char * const argv[],
 	if (images->os.os != IH_OS_TEE) {
 		return 1;
 	};
-
+	printf("images start", images->os.image_start);
+	puts("images start..........");
 	/* Validate OPTEE header */
 	ret = optee_verify_bootm_image(images->os.image_start,
 				       images->os.load,

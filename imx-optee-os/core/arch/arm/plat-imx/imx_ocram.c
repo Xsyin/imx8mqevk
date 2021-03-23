@@ -372,7 +372,7 @@ static TEE_Result init_ocram(void)
 {
 	struct tee_mmap_region map;
 	const paddr_t *phys_addr;
-	size_t        size_area;
+	size_t        size_area;         
 	void          *iram_tlb_vaddr;
 
 	DMSG("IRAM TLB phys addr = 0x%X", (uint32_t)iram_tlb_phys_addr);

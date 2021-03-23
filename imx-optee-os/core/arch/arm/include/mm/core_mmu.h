@@ -22,6 +22,32 @@
 #define SMALL_PAGE_MASK		0x00000fff
 #define SMALL_PAGE_SIZE		0x00001000
 
+#define PUD_SHIFT   30
+#define PUD_SIZE		(1 << PUD_SHIFT)
+#define PUD_MASK       (~(PUD_SIZE-1))
+#define PTRS_PER_PUD  (1 << 9)
+#define pud_index(addr) (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1))
+#define PUD_TYPE_TABLE 0x3
+#define pud_addr_end(addr, end)						\
+({	unsigned long __boundary = ((addr) + PUD_SIZE) & PUD_MASK;	\
+	(__boundary - 1 < (end) - 1)? __boundary: (end);		\
+})
+
+#define PMD_SHIFT 21
+#define PMD_SIZE		(1 << PMD_SHIFT)
+#define PMD_MASK		(~(PMD_SIZE-1))
+#define PTRS_PER_PMD  (1 << 9)
+#define pmd_index(addr) (((addr) >> PMD_SHIFT) & (PTRS_PER_PMD - 1))
+#define pmd_addr_end(addr, end)						\
+({	unsigned long __boundary = ((addr) + PMD_SIZE) & PMD_MASK;	\
+	(__boundary - 1 < (end) - 1)? __boundary: (end);		\
+})
+
+#define PMD_TYPE_TABLE 0x3
+#define PMD_TYPE_SECT 0x1
+#define SECT_PAGE_KERNEL_RO PMD_TYPE_SECT
+#define PAGE_KERNEL_RO 0x793
+
 /*
  * PGDIR is the translation table above the translation table that holds
  * the pages.
@@ -111,6 +137,7 @@
  */
 enum teecore_memtypes {
 	MEM_AREA_END = 0,
+	MEM_AREA_TEE_CONTAINER,
 	MEM_AREA_TEE_RAM,
 	MEM_AREA_TEE_RAM_RX,
 	MEM_AREA_TEE_RAM_RO,
@@ -136,6 +163,7 @@ static inline const char *teecore_memtype_name(enum teecore_memtypes type)
 {
 	static const char * const names[] = {
 		[MEM_AREA_END] = "END",
+		[MEM_AREA_TEE_CONTAINER] = "TEE_CONTAINER",
 		[MEM_AREA_TEE_RAM] = "TEE_RAM_RWX",
 		[MEM_AREA_TEE_RAM_RX] = "TEE_RAM_RX",
 		[MEM_AREA_TEE_RAM_RO] = "TEE_RAM_RO",

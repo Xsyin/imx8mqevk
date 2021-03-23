@@ -331,7 +331,7 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	kernel_entry = (void (*)(void *fdt_addr, void *res0, void *res1,
 				void *res2))images->ep;
 
-	debug("## Transferring control to Linux (at address %lx)...\n",
+	printf("## Transferring control to Linux (at address %lx)...\n",
 		(ulong) kernel_entry);
 	bootstage_mark(BOOTSTAGE_ID_RUN_OS);
 
@@ -355,10 +355,12 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 					    (u64)images->ft_addr, 0,
 					    (u64)images->ep,
 					    ES_TO_AARCH32);
-		else
+		else{
+			printf("## armv8_switch_to_el2...\n");
 			armv8_switch_to_el2((u64)images->ft_addr, 0, 0, 0,
 					    images->ep,
 					    ES_TO_AARCH64);
+		}	
 #endif
 	}
 #else

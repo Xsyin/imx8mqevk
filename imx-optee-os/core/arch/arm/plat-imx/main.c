@@ -151,6 +151,9 @@ void console_init(void)
 
 void main_init_gic(void)
 {
+#ifdef DRAM0_NSEC_BASE
+	DMSG("DRAM0_NSEC_BASE: 0x%08" PRIxVA " DRAM0_NSEC_SIZE:0x%08" PRIxPASZ, DRAM0_NSEC_BASE, DRAM0_NSEC_SIZE);
+#endif
 #ifdef CFG_ARM_GICV3
 	vaddr_t gicd_base;
 

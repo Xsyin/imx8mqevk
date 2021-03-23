@@ -164,7 +164,8 @@ void enable_caches(void)
 	if (rom_pointer[1]) {
 		imx8m_mem_map[5].size -= rom_pointer[1];
 	}
-
+	printf("imx8m_mem_map[5].size 0x%llx\n",
+			imx8m_mem_map[5].size);
 	icache_enable();
 	dcache_enable();
 }

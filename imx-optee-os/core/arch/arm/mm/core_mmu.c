@@ -65,6 +65,7 @@ static struct memaccess_area secure_only[] = {
 
 static struct memaccess_area nsec_shared[] = {
 	MEMACCESS_AREA(TEE_SHMEM_START, TEE_SHMEM_SIZE),
+	MEMACCESS_AREA(TEE_CONTAINER_BASE, TEE_CONTAINER_SIZE),
 };
 
 #if defined(CFG_SECURE_DATA_PATH)
@@ -74,6 +75,10 @@ register_sdp_mem(CFG_TEE_SDP_MEM_BASE, CFG_TEE_SDP_MEM_SIZE);
 #ifdef TEE_SDP_TEST_MEM_BASE
 register_sdp_mem(TEE_SDP_TEST_MEM_BASE, TEE_SDP_TEST_MEM_SIZE);
 #endif
+#endif
+
+#ifdef CFG_TEE_CONTAINER_START
+register_phys_mem(MEM_AREA_TEE_CONTAINER, TEE_CONTAINER_BASE, TEE_CONTAINER_SIZE);
 #endif
 
 #ifdef CFG_CORE_RWDATA_NOEXEC
@@ -608,6 +613,8 @@ uint32_t core_mmu_type_to_attr(enum teecore_memtypes t)
 		return attr | TEE_MATTR_SECURE | TEE_MATTR_PRWX | noncache;
 	case MEM_AREA_TA_RAM:
 		return attr | TEE_MATTR_SECURE | TEE_MATTR_PRW | cached;
+	case MEM_AREA_TEE_CONTAINER:
+		return attr | TEE_MATTR_PRW | noncache;
 	case MEM_AREA_NSEC_SHM:
 		return attr | TEE_MATTR_PRW | cached;
 	case MEM_AREA_IO_NSEC:
@@ -963,7 +970,7 @@ void core_init_mmu_map(void)
 			panic("Invalid memory access config: sec/nsec");
 	}
 
-	COMPILE_TIME_ASSERT(CFG_MMAP_REGIONS >= 13);
+	COMPILE_TIME_ASSERT(CFG_MMAP_REGIONS >= 14);
 	init_mem_map(static_memory_map, ARRAY_SIZE(static_memory_map));
 
 	map = static_memory_map;
@@ -980,6 +987,7 @@ void core_init_mmu_map(void)
 			if (!pbuf_is_inside(secure_only, map->pa, map->size))
 				panic("TA_RAM can't fit in secure_only");
 			break;
+		case MEM_AREA_TEE_CONTAINER:
 		case MEM_AREA_NSEC_SHM:
 			if (!pbuf_is_inside(nsec_shared, map->pa, map->size))
 				panic("NS_SHM can't fit in nsec_shared");

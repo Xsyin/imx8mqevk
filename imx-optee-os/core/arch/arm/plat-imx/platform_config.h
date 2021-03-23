@@ -83,16 +83,30 @@
 #endif
 
 #ifndef CFG_TEE_RESERVED_SIZE
-#define CFG_TEE_RESERVED_SIZE 0x02000000
+#define CFG_TEE_RESERVED_SIZE 0x04000000
+#endif
+
+#ifndef CFG_TEE_CONTAINER_SIZE
+#define CFG_TEE_CONTAINER_SIZE 0x02000000
+#endif
+
+#ifndef CFG_TEE_CONTAINER_START
+#if defined CFG_ARM64_core 
+/* put container end of ddr for AARCH64 */
+#define  CFG_TEE_CONTAINER_START (DRAM0_BASE + CFG_DDR_SIZE - CFG_TEE_RESERVED_SIZE)
+#else
+/* put container at DDR base address + 64MB for AARCH32 */
+#define  CFG_TEE_CONTAINER_START (DRAM0_BASE + 0x04000000) 
+#endif
 #endif
 
 #ifndef CFG_TZDRAM_START
 #if defined CFG_ARM64_core 
 /* put optee end of ddr for AARCH64 */
-#define  CFG_TZDRAM_START (DRAM0_BASE + CFG_DDR_SIZE - CFG_TEE_RESERVED_SIZE)
+#define  CFG_TZDRAM_START (DRAM0_BASE + CFG_DDR_SIZE - CFG_TEE_RESERVED_SIZE + CFG_TEE_CONTAINER_SIZE)
 #else
 /* put optee at DDR base address + 64MB for AARCH32 */
-#define  CFG_TZDRAM_START (DRAM0_BASE + 0x04000000) 
+#define  CFG_TZDRAM_START (DRAM0_BASE + 0x04000000 + CFG_TEE_CONTAINER_SIZE) 
 #endif
 #endif
 
@@ -101,7 +115,7 @@
 #endif
 
 #ifndef CFG_TZDRAM_SIZE
-#define  CFG_TZDRAM_SIZE  (CFG_TEE_RESERVED_SIZE - CFG_SHMEM_SIZE)
+#define  CFG_TZDRAM_SIZE  (CFG_TEE_RESERVED_SIZE - CFG_SHMEM_SIZE - CFG_TEE_CONTAINER_SIZE)
 #endif
 
 #ifndef CFG_SHMEM_START

@@ -19,6 +19,8 @@
 #include <linux/security.h>
 #include <linux/binfmts.h>
 #include <linux/cn_proc.h>
+#include <asm/sysreg.h>
+#include <linux/secure_container.h>
 
 #if 0
 #define kdebug(FMT, ...)						\
@@ -254,6 +256,7 @@ struct cred *prepare_creds(void)
 		return NULL;
 
 	kdebug("prepare_creds() alloc %p", new);
+	pr_info_once("*********ttbr1: %#016Lx", read_sysreg(ttbr1_el1));
 
 	old = task->cred;
 	memcpy(new, old, sizeof(struct cred));
@@ -428,7 +431,6 @@ int commit_creds(struct cred *new)
 	kdebug("commit_creds(%p{%d,%d})", new,
 	       atomic_read(&new->usage),
 	       read_cred_subscribers(new));
-
 	BUG_ON(task->cred != old);
 #ifdef CONFIG_DEBUG_CREDENTIALS
 	BUG_ON(read_cred_subscribers(old) < 2);

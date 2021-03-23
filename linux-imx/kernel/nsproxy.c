@@ -27,6 +27,8 @@
 #include <linux/syscalls.h>
 #include <linux/cgroup.h>
 #include <linux/perf_event.h>
+#include <asm/sysreg.h>
+#include <linux/secure_container.h>
 
 static struct kmem_cache *nsproxy_cachep;
 
@@ -109,7 +111,8 @@ static struct nsproxy *create_new_namespaces(unsigned long flags,
 		err = PTR_ERR(new_nsp->net_ns);
 		goto out_net;
 	}
-
+	pr_info("*********ttbr1: %#016Lx", read_sysreg(ttbr1_el1));
+	container_region_update();
 	return new_nsp;
 
 out_net:

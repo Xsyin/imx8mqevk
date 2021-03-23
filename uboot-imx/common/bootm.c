@@ -242,6 +242,7 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 {
 	int ret;
 
+	puts("bootm_find_images............\n");
 	/* find ramdisk */
 	ret = boot_get_ramdisk(argc, argv, &images, IH_INITRD_ARCH,
 			       &images.rd_start, &images.rd_end);
@@ -288,6 +289,8 @@ int bootm_find_images(int flag, int argc, char * const argv[])
 static int bootm_find_other(cmd_tbl_t *cmdtp, int flag, int argc,
 			    char * const argv[])
 {
+	puts("image os type:");
+	printf("image os type:", images.os.type);
 	if (((images.os.type == IH_TYPE_KERNEL) ||
 	     (images.os.type == IH_TYPE_KERNEL_NOLOAD) ||
 	     (images.os.type == IH_TYPE_MULTI)) &&

@@ -1,0 +1,202 @@
+[    1.977979] PA 0x00000000fffff000 VA 0xffff00000a085000                      
+[    1.996444] Read: 0x00000000                                                 
+[    1.999337] Write DEADBEEF...                                                
+[    2.002476] SError Interrupt on CPU3, code 0xbf000002 -- SError              
+[    2.002480] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.19.35 #22            
+[    2.002482] Hardware name: Freescale i.MX8MQ EVK (DT)                        
+[    2.002485] pstate: 40000005 (nZcv daif -PAN -UAO)                           
+[    2.002487] pc : vprintk_func+0x4c/0x1c0                                     
+[    2.002489] lr : printk+0x60/0x80                                            
+[    2.002491] sp : ffff00000803bbf0                                            
+[    2.002493] x29: ffff00000803bbf0 x28: ffff00000e401000                      
+[    2.002497] x27: ffff8000b8993a00 x26: 0000000000000001                      
+[    2.002502] x25: ffff00000908f6f0 x24: ffff00000a085000                      
+[    2.002506] x23: ffff8000bdfc34c0 x22: ffff000009425d60                      
+[    2.002510] x21: 0000000000000000 x20: ffff00000803bc80                      
+[    2.002514] x19: ffff0000096070d8 x18: 0000000000000010                      
+[    2.002518] x17: 0000000000000000 x16: 0000000000000000                      
+[    2.002522] x15: ffffffffffffffff x14: ffff0000096286c8                      
+[    2.002527] x13: ffff000089812437 x12: ffff00000981243f                      
+[    2.002531] x11: ffff000009640000 x10: ffff00000803bd10                      
+[    2.002535] x9 : 00000000ffffffc8 x8 : ffff00000803bcd0                      
+[    2.002539] x7 : 4544206574697257 x6 : 000000000000014b                      
+[    2.002543] x5 : 0000000000000000 x4 : 0000000000000000                      
+[    2.002547] x3 : 0000000000000001 x2 : ffff8000b86d0000                      
+[    2.002551] x1 : 00008000b49a0000 x0 : 0000000000000000                      
+[    2.002556] Kernel panic - not syncing: Asynchronous SError Interrupt        
+[    2.002559] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.19.35 #22            
+[    2.002561] Hardware name: Freescale i.MX8MQ EVK (DT)                        
+[    2.002563] Call trace:                                                      
+[    2.002565]  dump_backtrace+0x0/0x158                                        
+[    2.002567]  show_stack+0x14/0x20                                            
+[    2.002569]  dump_stack+0x90/0xb4                                            
+[    2.002571]  panic+0x120/0x27c                                               
+[    2.002573]  nmi_panic+0x6c/0x70                                             
+[    2.002575]  arm64_serror_panic+0x74/0x80                                    
+[    2.002577]  is_valid_bugaddr+0x0/0x8                                        
+[    2.002579]  el1_error+0x7c/0xdc                                             
+[    2.002581]  vprintk_func+0x4c/0x1c0                                         
+[    2.002583]  printk+0x60/0x80                                                
+[    2.002585]  optee_driver_init+0x534/0x6f4                                   
+[    2.002587]  do_one_initcall+0x74/0x178                                      
+[    2.002590]  kernel_init_freeable+0x18c/0x228                                
+[    2.002592]  kernel_init+0x10/0x100                                          
+[    2.002594]  ret_from_fork+0x10/0x18                                         
+[    2.003115] SMP: stopping secondary CPUs                                     
+[    2.003117] Kernel Offset: disabled                                          
+[    2.003119] CPU features: 0x0,2080200c                                       
+[    2.003121] Memory Limit: none                                               
+[    2.202631] ---[ end Kernel panic - not syncing: Asynchronous SError Interrup
+t ]---
+
+
+
+init_mm.pgd
+
+	@ adrp    x0, swapper_pg_dir
+	@ mov     x6, 0xffff7dfffe7f9000  // __va(end)
+	@ mov x4, PTRS_PER_PGD 
+	@ mov x3, 0xfc000000     // __pa(start)
+	@ mov x5, 0xfe000000      // __pa(end)
+	@ sub x5, x5, x3        // end - start
+	@ sub x5, x6, x5     // __va(start)
+	
+	adrp	x0, swapper_pg_dir
+	mov_q	x5, KIMAGE_VADDR + TEXT_OFFSET	// compile time __va(_text)
+	add	x5, x5, x23			// add KASLR displacement
+	mov	x4, PTRS_PER_PGD
+	adrp	x6, _end			// runtime __pa(_end)
+	adrp	x3, _text			// runtime __pa(_text)
+	sub	x6, x6, x3			// _end - _text
+	add	x6, x6, x5			// runtime __va(_end)
+	map_memory x0, x1, x5, x6, x7, x3, x4, x10, x11, x12, x13, x14
+
+	@ map_container x0, x3, x5, x6, x7, x3, x4, x10, x11, x12, x13, x14
+	
+	
+	
+map_container()
+{
+
+	pgd_t *pgdir,
+	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
+	/*
+	 * If the virtual and physical address don't have the same offset
+	 * within a page, we cannot map the region as the caller expects.
+	 */
+	if (WARN_ON((phys ^ virt) & ~PAGE_MASK))
+		return;
+
+	phys &= PAGE_MASK;
+	addr = virt & PAGE_MASK;
+	length = PAGE_ALIGN(size + (virt & ~PAGE_MASK));
+
+	end = addr + length;
+	do {
+		next = pgd_addr_end(addr, end);
+		alloc_init_pud(pgdp, addr, next, phys, prot, pgtable_alloc,
+			       flags);
+		phys += next - addr;
+	} while (pgdp++, addr = next, addr != end);
+	
+}
+
+
+
+static void __create_pgd_mapping(pgd_t *pgdir, phys_addr_t phys,
+				 unsigned long virt, phys_addr_t size,
+				 pgprot_t prot,
+				 phys_addr_t (*pgtable_alloc)(void),
+				 int flags)
+{
+	unsigned long addr, length, end, next;
+	pgd_t *pgdp = pgd_offset_raw(pgdir, virt);
+
+	/*
+	 * If the virtual and physical address don't have the same offset
+	 * within a page, we cannot map the region as the caller expects.
+	 */
+	if (WARN_ON((phys ^ virt) & ~PAGE_MASK))
+		return;
+
+	phys &= PAGE_MASK;
+	addr = virt & PAGE_MASK;
+	length = PAGE_ALIGN(size + (virt & ~PAGE_MASK));
+
+	end = addr + length;
+	do {
+		next = pgd_addr_end(addr, end);
+		alloc_init_pud(pgdp, addr, next, phys, prot, pgtable_alloc,
+			       flags);
+		phys += next - addr;
+	} while (pgdp++, addr = next, addr != end);
+}
+
+
+.macro populate_entries, tbl, rtbl, index, eindex, flags, inc, tmp1
+.Lpe\@:	phys_to_pte \tmp1, \rtbl
+	orr	\tmp1, \tmp1, \flags	// tmp1 = table entry
+	str	\tmp1, [\tbl, \index, lsl #3]
+	add	\rtbl, \rtbl, \inc	// rtbl = pa next level
+	add	\index, \index, #1
+	cmp	\index, \eindex
+	b.ls	.Lpe\@
+	.endm
+	
+	
+	
+	.macro compute_indices, vstart, vend, shift, ptrs, istart, iend, count
+	lsr	\iend, \vend, \shift
+	mov	\istart, \ptrs
+	sub	\istart, \istart, #1
+	and	\iend, \iend, \istart	// iend = (vend >> shift) & (ptrs - 1)
+	mov	\istart, \ptrs
+	mul	\istart, \istart, \count
+	add	\iend, \iend, \istart	// iend += count * ptrs
+					// our entries span multiple tables
+
+	lsr	\istart, \vstart, \shift
+	mov	\count, \ptrs
+	sub	\count, \count, #1
+	and	\istart, \istart, \count        istart= （vstart >> shift) & (ptrs - 1)
+
+	sub	\count, \iend, \istart     count = 
+	.endm
+
+
+
+   0.000000] *******fix addr start 0xffff7dfffc7f9000                         
+[    0.000000] *******fixmap 8192, container 0xffff7dfffcc00000                 
+[    0.000000] *******fixmap 1, container 0xffff7dfffebff000                    
+[    0.000000] *******fixmap 9216, FIX_FDT 0xffff7dfffc800000                   
+[    0.000000] *******fixmap 8193, FIX_FDT_END 0xffff7dfffcbff000               
+[    0.000000] *******fixmap 9223, __end_of_permanent_fixed_addresses 0xffff7dff
+fc7f9000                                                                        
+[    0.000000] Machine model: Freescale i.MX8MQ EVK                             
+[    0.000000] earlycon: ec_imx6q0 at MMIO 0x0000000030860000 (options '115200')
+[    0.000000] bootconsole [ec_imx6q0] enabled                                  
+[    0.000000] efi: Getting EFI parameters from FDT:                            
+[    0.000000] efi: UEFI not found.                                             
+[    0.000000] Reserved memory: created CMA memory pool at 0x0000000044000000, s
+ize 960 MiB                                                                     
+[    0.000000] OF: reserved mem: initialized node linux,cma, compatible id share
+d-dma-pool                                                                      
+[    0.000000] *********pgdir 0xffff7dfffc636000, con_virt: 0xffff7dfffcc00000  
+[    0.000000] *********pgdp: 0xffff7dfffc6367d8, con_virt_end 0xffff7dfffec0000
+0                                                                               
+[    0.000000] *********pgd 0x00000041c07003, pgdp 0xffff7dfffc6367d8,  con_phys
+ 0x000000fc000000, con_virt: 0xffff7dfffcc00000                                 
+[    0.000000] *********pud 0x00000041c08003, pudp 0xffff7dfffc637ff8, pmd 0xe00
+000fc000791, pmdp 0xffff7dfffc638f30                                            
+[    0.000000] *********pmd 0xe0 0000 fc20 0791, pmdp 0xffff7dfffc638f38           
+[    0.000000] *********pmd 0xe00000fc400791, pmdp 0xffff7dfffc638f40           
+[    0.000000] *********ttbr1: 0x00000041c78000                                 
+[    0.000000] ****************pgd_phys: 0x000000fbfff000, va: 0xffff8000bbfff00
+0                                                                               
+[    0.000000] ****************pgdp: 0xffff7dfffc636000, value 0x000000fbffe003 
+[    0.000000] ****************swapper_pg_dir: 0x00000041c78000, va: 0xffff00000
+9878000                                                                         
+[    0.000000] ****************PGD_SIZE: 0x00000000001000, PUD_SIZE: 0x000000400
+00000                                                                           
+[    0.000000] *********ttbr1: 0x000000fbfff000                                 
+[    0.000000] *********ttbr1: 0x00000041c78000    

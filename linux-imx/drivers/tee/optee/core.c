@@ -30,6 +30,8 @@
 #include "optee_smc.h"
 #include "shm_pool.h"
 
+#include <asm/fixmap.h>
+
 #ifdef CONFIG_OUTER_CACHE
 #include <asm/outercache.h>
 #endif
@@ -468,13 +470,13 @@ optee_config_shm_memremap(optee_invoke_fn *invoke_fn, void **memremaped_shm,
 		return ERR_PTR(-EINVAL);
 	}
 	vaddr = (unsigned long)va;
+	pr_info("shared memory paddr: %#016Lx, size 0x%08x, vaddr : %#016Lx, value: %#016Lx", paddr, size, vaddr, *(unsigned long *)vaddr);
+	*(unsigned long *)vaddr = 0xdead2333;
 
 	/*
 	 * If OP-TEE can work with unregistered SHM, we will use own pool
 	 * for private shm
 	 */
-	pr_info("sec_caps : %#x", sec_caps);
-	pr_info("paddr : %pa, vaddr: %pa, size %ld", paddr, va, size);
 	if (sec_caps & OPTEE_SMC_SEC_CAP_DYNAMIC_SHM) {
 		rc = optee_shm_pool_alloc_pages();
 		if (IS_ERR(rc))
@@ -504,9 +506,27 @@ optee_config_shm_memremap(optee_invoke_fn *invoke_fn, void **memremaped_shm,
 		goto err_free_dmabuf_mgr;
 
 	*memremaped_shm = va;
+	pr_info("shared memory dmabuf_mgr: %#018Lx, size 0x%08x, priv_mgr : %#018Lx, memremaped_shm :%#018Lx", dmabuf_mgr, size, priv_mgr, memremaped_shm);
 
-	pr_info("shared memory dmabuf_mgr: %pa, size %ld, priv_mgr : %pa, memremaped_shm :%pa", dmabuf_mgr, size, priv_mgr, memremaped_shm);
+	// {
+	// 	void __iomem *vas;
+	// 	phys_addr_t pas = 0xfc000000;
 
+	// 	// vas = ioremap_cache(pas, 1024);
+	// 	vas = ioremap_nocache(pas, 1024);
+	// 	if (!vas) {
+	// 		printk("Impossible to map address %p\n", (void *)pas);
+	// 			return -EINVAL;
+	// 	}
+	// 	printk("PA %#018Lx VA %#018Lx\n", (void *)pas, vas);
+	// 	printk("Read: 0x%08x\n", *(uint32_t *)vas);
+	// 	printk("Write DEADBEEF...\n");
+	// 	*(uint32_t *)vas = 0xDEADBEEF;
+	// 	printk("Read: 0x%08x\n", *(uint32_t *)vas);
+
+	// } 
+	pr_info("*********test value: %#016Lx", container_virt);
+	pr_info("*********test value: %#016Lx", *(u64 *)container_virt);
 	return rc;
 
 err_free_dmabuf_mgr:
