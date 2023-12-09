@@ -148,7 +148,7 @@ make linux-rootfs
 拨动sw802开关至 D1 OFF    D2  ON
 uuu -d uuu.auto
 ```
-##配置
+## 配置
 参考同仓库下的`imx8mqevk ubuntu`, `imx8mqevk刷写Ubuntu后配置`等笔记
 
 
