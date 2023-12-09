@@ -12,18 +12,17 @@ git clone https://source.codeaurora.org/external/imx/imx-optee-client -b imx_4.1
 git clone https://source.codeaurora.org/external/imx/imx-optee-test -b imx_4.19.35_1.0.0
 git clone git@github.com:linaro-swg/optee_examples.git -b 3.2.0
 
-
-optee os patch:  gcc.mk
-
-+libgcc$(sm)  	:= $(shell $(CC$(sm)) $(LIBGCC_LOCATE_CFLAGS) $(CFLAGS$(arch-bits-$(sm))) $(comp-cflags$(sm)) \
- 			-print-libgcc-file-name 2> /dev/null)
- 			
  			
  wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.5.bin
  chmod +x firmware-imx-8.5.bin
  ./firmware-imx-8.5.bin
 ```
+PS: https://source.codeaurora.org/external/imx/ 已失效，可换成https://github.com/nxp-imx/
+// 若optee os编译时找不到lib库
+optee os patch:  gcc.mk
 
++libgcc$(sm)  	:= $(shell $(CC$(sm)) $(LIBGCC_LOCATE_CFLAGS) $(CFLAGS$(arch-bits-$(sm))) $(comp-cflags$(sm)) \
+ 			-print-libgcc-file-name 2> /dev/null)
 ## 环境搭建
 
 ```
