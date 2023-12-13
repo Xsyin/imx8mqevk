@@ -94,7 +94,7 @@ bison flex  libpango1.0-dev libatk1.0-dev kmod pciutils isc-dhcp-server -y
 $ sudo ./ch-mount.sh -u ubuntu-rootfs/
 ```
 
-6. 从imx-yocto项目中拷贝：（host中操作）
+6. （可选）从imx-yocto项目中拷贝：（host中操作）
 
 ```
 $ cp -Pra ~/imx-yocto-4.19/build-docker/tmp/work/aarch64-mx8m-poky-linux/libdrm/2.4.99.imx-r0/image/* ~/rootfs/ubuntu-rootfs
@@ -104,7 +104,7 @@ $ cp -Pra ~/imx-yocto-4.19/build-docker/tmp/work/imx8mqevk-poky-linux/systemd-se
 
 ```
 
-7. 挂载imx-yocto项目中的rootfs（如fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic）并替换rootfs为ubuntu：
+7. 挂载imx-yocto项目中的rootfs（如fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic）并替换rootfs为ubuntu(也可替换官方镜像的rootfs，官方镜像下载地址：https://www.nxp.com/search?keyword=L4.19.35_1.0.0_MX8MQ&start=0&category=software)：
 
 ```
 $ sudo losetup --partscan /dev/loop41 fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic
