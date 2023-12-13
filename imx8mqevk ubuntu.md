@@ -104,7 +104,7 @@ $ cp -Pra ~/imx-yocto-4.19/build-docker/tmp/work/imx8mqevk-poky-linux/systemd-se
 
 ```
 
-7. 挂载imx-yocto项目中的rootfs（如fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic）并替换rootfs为ubuntu(也可替换官方镜像的rootfs，官方镜像下载地址：https://www.nxp.com/search?keyword=L4.19.35_1.0.0_MX8MQ&start=0&category=software)：
+7. 挂载imx-yocto项目中的rootfs（如fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic）并替换rootfs为ubuntu(也可替换[官方镜像](https://www.nxp.com/search?keyword=L4.19.35_1.0.0_MX8MQ&start=0&category=software)的rootfs)：
 
 ```
 $ sudo losetup --partscan /dev/loop41 fsl-image-validation-imx-imx8mqevk-20210907060444.rootfs.wic
